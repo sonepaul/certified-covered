@@ -1,0 +1,20 @@
+# Netlify build config for the Vite static site.
+# Env vars (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY) are set in the Netlify
+# dashboard, not here — keeps keys out of source control and rotatable.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# SPA-style fallback so any path serves the single page.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
