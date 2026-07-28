@@ -168,3 +168,47 @@ form.addEventListener('submit', async (event) => {
     setSubmitting(false);
   }
 });
+
+// ---------------------------------------------------------------------------
+// Presentation enhancements (purely visual — independent of the form logic).
+// ---------------------------------------------------------------------------
+const prefersReducedMotion = window.matchMedia(
+  '(prefers-reduced-motion: reduce)'
+).matches;
+
+// Count up a stat number from 0 to its target once it scrolls into view.
+function runCountUp(el) {
+  const target = Number(el.dataset.count);
+  const suffix = el.dataset.suffix || '';
+  if (!Number.isFinite(target)) return;
+  const duration = 1100;
+  const start = performance.now();
+  function tick(now) {
+    const p = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - p, 3); // easeOutCubic
+    el.textContent = Math.round(eased * target) + suffix;
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+// Reveal-on-scroll + trigger any count-ups inside a revealed block.
+const revealEls = document.querySelectorAll('[data-reveal]');
+if (prefersReducedMotion || !('IntersectionObserver' in window)) {
+  revealEls.forEach((el) => el.classList.add('is-visible'));
+} else {
+  const io = new IntersectionObserver(
+    (entries, obs) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-visible');
+        entry.target
+          .querySelectorAll('[data-count]')
+          .forEach((n) => runCountUp(n));
+        obs.unobserve(entry.target);
+      });
+    },
+    { threshold: 0.16, rootMargin: '0px 0px -8% 0px' }
+  );
+  revealEls.forEach((el) => io.observe(el));
+}
